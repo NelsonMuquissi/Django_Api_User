@@ -20,7 +20,7 @@ def get_user(request):
     return Response(status=status.HTTP_400_BAD_REQUEST)
 
 
-@api_view(['GET'])
+@api_view(['GET', 'PUT'])
 def get_by_nick(request, nick):
     try:
         user = User.objects.get(pk=nick)
@@ -30,6 +30,15 @@ def get_by_nick(request, nick):
     if request.method == 'GET':
         serializer = UserSerializer(user)
         return Response(serializer.data)
+    
+    if request.method == 'PUT':
+
+        serializer = UserSerializer(user, data=request.data)
+
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(status=status.HTTP_400_BAD_REQUEST)
     
 
 #CRUD
@@ -80,4 +89,13 @@ def user_manager(request):
             seralizer.save()
             return Response(seralizer.data, status=status.HTTP_202_ACCEPTED)
         return Response(status=status.HTTP_400_BAD_REQUEST)
+    
+
+    if request.method == "DELETE":
+        try:
+            user_to_delete = User.objects.get(pk=request.data['user_nickname'])
+            user_to_delete.delete()
+            return Response(status=status.HTTP_202_ACCEPTED)
+        except:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
 
